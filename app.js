@@ -1,5 +1,6 @@
-"use strict"
+`use strict`
 
+const {Draw} = require("./Draw.js");
 
 main();
 

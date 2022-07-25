@@ -2,7 +2,7 @@
   "name": "higharc-project",
   "version": "1.0.0",
   "description": "higharc assignment",
-  "main": "App.js",
+  "main": "app.js",
   "scripts": {
     "test": "jest"
   },
