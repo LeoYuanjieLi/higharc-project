@@ -13,7 +13,7 @@ class Edge {
 }
 
 class Face {
-  constructor(Edges) {
+  constructor(Edges, faceType="exterior") {
     /**
      * The sort is to make sure same collection of Edges construct same name as
      * a unique ID
@@ -21,7 +21,7 @@ class Face {
     this.edges = Edges.sort((a, b) => a.name.localeCompare(b.name));
     this.name = this.edges.map(e => e.name).join("||");
     this.edgesMap = this.buildMap();
-    this.level = 0; // default to be parameter face hence 0;
+    this.faceType = faceType; // default to be exterior;
   }
 
   buildMap() {
@@ -45,6 +45,7 @@ class Polygons {
     this.faces = new Map();
     this.startPtId = this.getStartPtId();
     this.genAdjList();
+    this.genExteriorEdges();
   }
 
   genAdjList() {
@@ -58,24 +59,18 @@ class Polygons {
     }
   }
 
-  getNextId(curEdge, neighbors, visited, direction="left", nextAngle = 360) {
+  getNextId(curEdge, neighbors) {
     const curId = curEdge.end;
     let nextId = -1;
+    let nextAngle = 0;
     for (let i = 0; i < neighbors.length; i++) {
       const neiId = neighbors[i];
       const e = this.edges.get(curId.toString() + "--" + neiId.toString());
       const angle = this.edgeAngle(e, this.edges.get(`${curEdge.end}--${curEdge.start}`));
       // trick, use the reverse of current edge so that we bypass the +- 180 degrees headache
-      if (direction === "left") {
-        if (angle < nextAngle) {
-          nextAngle = angle;
-          nextId = neiId;
-        }
-      } else if (direction === "right") {
-        if (angle > nextAngle) {
-          nextAngle = angle;
-          nextId = neiId;
-        }
+      if (angle > nextAngle) {
+        nextAngle = angle;
+        nextId = neiId;
       }
     }
 
@@ -91,23 +86,28 @@ class Polygons {
     const visited = new Set();
     const allEdges = [startEdge];
     const queue = [startEdge];
+    let faceType = "interior";
     while (queue.length > 0) {
       const curEdge = queue.shift();
       const curId = curEdge.end;
       visited.add(curEdge.name);
       const neighbors = this.adjList.get(curId);
 
-      const nextId = this.getNextId(curEdge, neighbors, visited, "right", 0);
-      if (nextId !== -1 && !visited.has(curId.toString() + "--" + nextId.toString())) {
-        queue.push(this.edges.get(curId.toString() + "--" + nextId.toString()));
-        allEdges.push(this.edges.get(curId.toString() + "--" + nextId.toString()));
+      const nextId = this.getNextId(curEdge, neighbors);
+      const name = curId.toString() + "--" + nextId.toString();
+      if (nextId !== -1 && !visited.has(name)) {
+        if (this.exteriorEdges.has(name)) {
+          faceType = "exterior";
+        }
+        queue.push(this.edges.get(name));
+        allEdges.push(this.edges.get(name));
         if (nextId === startEdge.start) {
           break;
         }
       }
     }
 
-    return allEdges.length >= 3 ? new Face(allEdges) : null;
+    return allEdges.length >= 3 ? new Face(allEdges, faceType) : null;
 
   }
 
@@ -123,7 +123,8 @@ class Polygons {
     for (let i = 0; i < this.vertices.length; i++) {
       const neighbors = this.adjList.get(i);
       const edgeNames = neighbors.map(neiId => i.toString() + "--" + neiId.toString());
-      queue.push(...edgeNames);
+      const filteredName = edgeNames.filter(name => !this.exteriorEdges.has(name));
+      queue.push(...filteredName);
     }
     // start the search
     while (queue.length > 0) {
@@ -151,7 +152,7 @@ class Polygons {
     /**
      * BFS approach, greedy adding the node having the largest angle (< 180) aka going as "left"
      * as possible, until going back to start
-     * Note: this will not find all exterior edges however it is guarantee find the edges so that
+     * Note: this has side effect, marking exterior nodes as well.
      * all exterior faces has AT LEAST ONE edge in this group.
      * @type {{}}
      */
@@ -170,6 +171,15 @@ class Polygons {
     }
     const startEdgeName = this.startPtId.toString() + "--" + nextId.toString();
     const exteriorEdges = this.constructFace(startEdgeName).edges;
+    exteriorEdges.forEach(e => {
+      this.exteriorEdges.set(e.name, e);
+      this.exteriorEdges.set(`${e.end}--${e.start}`, this.edges.get(`${e.end}--${e.start}`));
+      // add reverse edges as well
+    });
+    this.exteriorPts = new Set();
+    this.exteriorEdges.forEach(e => {
+      this.exteriorPts.add(e.start);
+      this.exteriorPts.add(e.end);})
   }
 
   totalEdgeCount() {
