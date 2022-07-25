@@ -1,38 +1,6 @@
-class Edge {
-  constructor(v1Id, v2Id, v1, v2) {
-    /**
-     * @type {v1: Array[Number], v2: Array[Number]}
-     */
-    this.start = v1Id;
-    this.end = v2Id;
-    this.name = v1Id.toString() + "--" + v2Id.toString();
-    this.startPos = v1;
-    this.endPos = v2;
-  }
-
-}
-
-class Face {
-  constructor(Edges, faceType="exterior") {
-    /**
-     * The sort is to make sure same collection of Edges construct same name as
-     * a unique ID
-     */
-    this.edges = Edges.sort((a, b) => a.name.localeCompare(b.name));
-    this.name = this.edges.map(e => e.name).join("||");
-    this.edgesMap = this.buildMap();
-    this.faceType = faceType; // default to be exterior;
-  }
-
-  buildMap() {
-    const _edgesMap = {};
-    for (let i = 0; i < this.edges.length; i++) {
-      _edgesMap[this.edges[i].name] = this.edges[i];
-    }
-    return _edgesMap;
-  }
-
-}
+"use strict"
+const {Face} = require('./Face');
+const {Edge} = require('./Edge');
 
 
 class Polygons {
@@ -40,9 +8,10 @@ class Polygons {
     this.vertices = inputJson.vertices;
     this.rawEdges = inputJson.edges;
     this.adjList = new Map();
-    this.edges = this.unweld();
+    this.edges = this.genEdges();
     this.exteriorEdges = new Map();
     this.faces = new Map();
+    this.interiorFaces = [];
     this.startPtId = this.getStartPtId();
     this.genAdjList();
     this.genExteriorEdges();
@@ -77,16 +46,16 @@ class Polygons {
     return nextId;
   }
 
-  constructFace(startEdgeName) {
+  constructFace(startEdgeName, faceType="interior") {
     /**
      * BFS keep going "right"
      * @type {any}
+     * time complexity O(v^2), v is vertices number
      */
     const startEdge = this.edges.get(startEdgeName);
     const visited = new Set();
     const allEdges = [startEdge];
     const queue = [startEdge];
-    let faceType = "interior";
     while (queue.length > 0) {
       const curEdge = queue.shift();
       const curId = curEdge.end;
@@ -116,6 +85,7 @@ class Polygons {
      * generate all faces interior and exterior, this uses a similar greedy approach
      * (see `constructFace` method) to genExteriorEdges, but instead going "right" as much as
      * possible so that it construct the face.
+     * time complexity O(e * v^2), v is vertices number, e is edge count
      */
 
     // pre-work, add all edges to the queue;
@@ -136,7 +106,20 @@ class Polygons {
     }
   }
 
-  unweld() {
+  getInteriorFaceNames() {
+    if (this.interiorFaces.length > 0) {
+      return this.interiorFaces;
+    }
+
+    const keys = Array.from(this.faces.keys());
+    keys.forEach(k => {
+      const face = this.faces.get(k);
+      face.faceType === "interior" ? this.interiorFaces.push(face.name) : null;
+    })
+    return this.interiorFaces;
+  }
+
+  genEdges() {
     const unweldedEdges = new Map();
     for (let i = 0; i < this.rawEdges.length; i++) {
       const [start, end] = this.rawEdges[i];
@@ -170,6 +153,9 @@ class Polygons {
       }
     }
     const startEdgeName = this.startPtId.toString() + "--" + nextId.toString();
+    const face = this.constructFace(startEdgeName);
+    face.faceType = "allExterior";  // bad practice...
+    this.faces.set(face.name, face);
     const exteriorEdges = this.constructFace(startEdgeName).edges;
     exteriorEdges.forEach(e => {
       this.exteriorEdges.set(e.name, e);
@@ -182,22 +168,15 @@ class Polygons {
       this.exteriorPts.add(e.end);})
   }
 
-  totalEdgeCount() {
-    return (this.rawEdges.length - this.exteriorEdges.length) * 2 + this.exteriorEdges.length;
-  }
-
   getStartPtId() {
     const yValues = this.vertices.map(item => item[1]);
     const minYValue = Math.min(...yValues);
     return yValues.indexOf(minYValue);
   }
 
-  getInteriorPointsAndEdges() {
-
-  }
-
   edgeAngle(e, e0 = new Edge(0, 1, [0, 0], [1, 0])) {
     /**
+     * this is the key helper method use for identifying a face && getting the exterior
      * calculate the given edge angle from vector [0, 1];
      * some function borrowed from:
      * https://stackoverflow.com/questions/56147279/how-to-find-angle-between-two-vectors-on-canvas
@@ -214,7 +193,23 @@ class Polygons {
     return angle >= 0 ? angle : angle + 360
   }
 
+  getNeighborFaces(originFaceName) {
+    const originFace = this.faces.get(originFaceName);
+    const verts = Array.from(originFace.verts);
+    const result = new Set();
+    verts.forEach(v => {
+      const neighbors = this.adjList.get(v);
+      neighbors.forEach( n => {
+        const face = this.constructFace(`${v}--${n}`);
+        originFace.name !== face.name ? result.add(face.name) : null;
+
+      })
+    })
+
+    return Array.from(result);
+  }
+
 
 }
 
-module.exports = {Geometry: Polygons, Edge, Face};
+module.exports = {Polygons};

@@ -1,13 +1,20 @@
-const {Geometry, Edge, Face} = require('./Polygons');
+const {Polygons} = require('./Polygons');
+const {Face} = require('./Face');
+const {Edge} = require('./Edge');
+
 
 describe('test Face constructor', () => {
-  const e1 = new Edge([0, 0], [200, 0]);
-  const e2 = new Edge([200, 0], [200, 200]);
-  const e3 = new Edge([200, 200], [0, 0]);
+  const e1 = new Edge(0, 1, [0, 0], [200, 0]);
+  const e2 = new Edge(1, 2, [200, 0], [200, 200]);
+  const e3 = new Edge(2, 0, [200, 200], [0, 0]);
+  const testFace = new Face([e1, e2, e3]);
+  const testFace2 = new Face([e1, e3, e2]);
   it('testFace and testFace2 should return same name', () => {
-    const testFace = new Face([e1, e2, e3]);
-    const testFace2 = new Face([e1, e3, e2]);
     expect (testFace.name).toEqual(testFace2.name);
+  });
+  it('should have 3 verts', function () {
+    expect(JSON.stringify(Array.from(testFace.verts)))
+      .toEqual(JSON.stringify([0, 1, 2]));
   });
 });
 
@@ -20,7 +27,7 @@ describe('Basic Geometry methods', () => {
   }
   let testGeo;
   it("should construct a geometry", () => {
-    testGeo = new Geometry(inputJson);
+    testGeo = new Polygons(inputJson);
   })
 
   it('should get the point Id with minimal y value', () => {
@@ -70,7 +77,7 @@ describe('Advanced Geometry methods', () => {
   }
   let testGeo;
   it("should construct a geometry", () => {
-    testGeo = new Geometry(inputJson);
+    testGeo = new Polygons(inputJson);
   })
   it('should get 10 exterior edges', () => {
     expect(testGeo.exteriorEdges.size).toBe(10);
@@ -107,13 +114,20 @@ describe('With interior face test case', () => {
   }
   let testGeo;
   it("should construct a geometry", () => {
-    testGeo = new Geometry(inputJson);
+    testGeo = new Polygons(inputJson);
   })
   it('should get 8 exterior edges', () => {
     expect(testGeo.exteriorEdges.size).toBe(8);
   });
-  it('should generate 3 faces', function () {
+  it('should generate 3 faces', () => {
     testGeo.genAllFaces();
-    console.log(testGeo.faces);
+    const faces = testGeo.getInteriorFaceNames();
+    expect(faces.length).toBe(1);
+    expect(faces[0]).toBe("2--3||3--5||4--2||5--4");
+  });
+  it('should get 2 neighbor faces', () => {
+    const originFaceNames = testGeo.getInteriorFaceNames();
+    const neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
+    console.log(neighbors);
   });
 });
