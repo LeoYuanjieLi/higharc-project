@@ -1,10 +1,12 @@
 "use strict"
+
 class Face {
   constructor(edges, faceType="exterior") {
     /**
      * The sort is to make sure same collection of Edges construct same name as
      * a unique ID
      */
+    this.originName = edges.map(e => e.name).join("||");
     this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
     this.name = this.edges.map(e => e.name).join("||");
     this.faceType = faceType; // default to be exterior;

@@ -20,6 +20,7 @@ class Face {
      * The sort is to make sure same collection of Edges construct same name as
      * a unique ID
      */
+    this.originName = edges.map(e => e.name).join("||");
     this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
     this.name = this.edges.map(e => e.name).join("||");
     this.faceType = faceType; // default to be exterior;
@@ -48,6 +49,7 @@ class Polygons {
     this.startPtId = this.getStartPtId();
     this.genAdjList();
     this.genExteriorEdges();
+    this.genAllFaces();
   }
 
   genAdjList() {
@@ -153,15 +155,15 @@ class Polygons {
   }
 
   genEdges() {
-    const unweldedEdges = new Map();
+    const edges = new Map();
     for (let i = 0; i < this.rawEdges.length; i++) {
       const [start, end] = this.rawEdges[i];
       const e1 = new Edge(start, end, this.vertices[start], this.vertices[end]);
       const e2 = new Edge(end, start, this.vertices[end], this.vertices[start]);
-      unweldedEdges.set(e1.name, e1);
-      unweldedEdges.set(e2.name, e2);
+      edges.set(e1.name, e1);
+      edges.set(e2.name, e2);
     }
-    return unweldedEdges;
+    return edges;
   }
 
   genExteriorEdges() {
@@ -187,7 +189,7 @@ class Polygons {
     }
     const startEdgeName = this.startPtId.toString() + "--" + nextId.toString();
     const face = this.constructFace(startEdgeName);
-    face.faceType = "allExterior";  // bad practice...
+    face.faceType = "allExterior";  // bad practice... bur for now
     this.faces.set(face.name, face);
     const exteriorEdges = this.constructFace(startEdgeName).edges;
     exteriorEdges.forEach(e => {
@@ -241,6 +243,8 @@ class Polygons {
 
     return Array.from(result);
   }
+
+
 }
 
 class Draw {
@@ -269,9 +273,30 @@ class Draw {
     }
   }
 
-  static drawFace() {
-
+  static drawFace(faceName, polygons) {
+    const face = polygons.faces.get(faceName);
+    const orderedEdges = face.originName.split("||");
+    const firstEdge = polygons.edges.get(orderedEdges[0])
+    const firstPt = firstEdge.startPos;
+    if (canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(firstPt[0], firstPt[1]);
+      for (let i = 0; i < orderedEdges.length; i++) {
+        const edge = polygons.edges.get(orderedEdges[i]);
+        ctx.lineTo(edge.endPos[0], edge.endPos[1]);
+      }
+      if (face.faceType === "allExterior") {
+        ctx.fillStyle = "purple";
+      } else {
+        face.faceType === "interior" ? ctx.fillStyle = "red" : ctx.fillStyle = "blue";
+      }
+      ctx.fill();
+      ctx.closePath();
+      ctx.stroke();
+    }
   }
+
 }
 
 
@@ -304,6 +329,8 @@ const inputJson = {
 
 function main() {
   const polygons = new Polygons(inputJson);
+  const faceName = Array.from(polygons.faces.keys())[1];
+  Draw.drawFace(faceName, polygons);
   Draw.drawPolygon(polygons);
 }
 

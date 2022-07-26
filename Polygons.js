@@ -15,6 +15,7 @@ class Polygons {
     this.startPtId = this.getStartPtId();
     this.genAdjList();
     this.genExteriorEdges();
+    this.genAllFaces();
   }
 
   genAdjList() {
@@ -154,7 +155,7 @@ class Polygons {
     }
     const startEdgeName = this.startPtId.toString() + "--" + nextId.toString();
     const face = this.constructFace(startEdgeName);
-    face.faceType = "allExterior";  // bad practice...
+    face.faceType = "allExterior";  // bad practice... bur for now
     this.faces.set(face.name, face);
     const exteriorEdges = this.constructFace(startEdgeName).edges;
     exteriorEdges.forEach(e => {
