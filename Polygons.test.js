@@ -35,7 +35,6 @@ describe('Basic Geometry methods', () => {
   });
 
   it('should generate adjList', () => {
-    testGeo.genAdjList()
     expect(Object.fromEntries(testGeo.adjList))
       .toEqual(
           { 0: [ 1, 2, 3 ],
@@ -57,14 +56,14 @@ describe('Basic Geometry methods', () => {
     expect(testGeo.exteriorEdges.size).toBe(8);
   });
 
-  it('should construct a face', () => {
+  it('should construct the faces', () => {
     const Face1 = testGeo.constructFace('0--1');
     const Face2 = testGeo.constructFace('0--2');
     const Face3 = testGeo.constructFace('0--3');
   });
 
   it('should gen 2 faces', () => {
-    testGeo.genAllFaces();
+    expect(testGeo.faces.size).toBe(3);
   });
 });
 
@@ -126,10 +125,11 @@ describe('With interior face test case', () => {
   it('should get 14 exterior edges', () => {
     expect(testGeo.exteriorEdges.size).toBe(14);
   });
-  it('should get 1 interior face', () => {
+  it('should get 2 interior face', () => {
     const faces = testGeo.getInteriorFaceNames();
     expect(faces.length).toBe(2);
     expect(faces[0]).toBe("2,3,4,5");
+    expect(faces[1]).toBe("4,5,10");
   });
   it('should get correct number of neighbors', () => {
     const originFaceNames = testGeo.getInteriorFaceNames();
