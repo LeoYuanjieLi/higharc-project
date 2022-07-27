@@ -4,7 +4,7 @@ A humble attempt to implement some fun algorithms in javascript (as vanilla as p
 ## TL;DR
 
 ### View result of Algorithms 1 & 2
-In `App.js`, enable `line 378`
+In `App.js`, enable `line 378` for algorithm 1, the other for algorithm 2
 ```javascript
 Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
 // Draw.drawAllFacesAlgorithm2("0,1,2,3", inputJson); // use this to view algo 2 result;
