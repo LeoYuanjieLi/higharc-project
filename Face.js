@@ -7,12 +7,13 @@ class Face {
      * a unique ID
      */
     this.originName = edges.map(e => e.name).join("||");
-    this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
-    // this.name = this.edges.map(e => e.name).join("||");
+    this.edges = edges;
     this.faceType = faceType; // default to be exterior;
     this.verts = new Set();
     this.getVerts();
-    this.name = Array.from([...this.verts].sort()).toString();
+    const vArray = Array.from(this.verts);
+    vArray.sort((a, b) => a - b);
+    this.name = vArray.toString();
   }
 
   getVerts() {

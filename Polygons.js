@@ -208,16 +208,20 @@ class Polygons {
 
   getNeighborFaces(originFaceName) {
     const originFace = this.faces.get(originFaceName);
-    const verts = Array.from(originFace.verts);
     const result = new Set();
-    verts.forEach(v => {
-      const neighbors = this.adjList.get(v);
-      neighbors.forEach( n => {
-        const face = this.constructFace(`${v}--${n}`);
-        originFace.name !== face.name ? result.add(face.name) : null;
-
-      })
-    })
+    const parameterPolygon = this.faces.keys().next().value;
+    for (let i = 0; i < originFace.edges.length; i++) {
+      const e = originFace.edges[i];
+      let face = this.constructFace(e.name);
+      if (face.name !== originFaceName) {
+        face.name !== parameterPolygon ? result.add(face.name) : null;
+      }
+      const revName = `${e.end}--${e.start}`
+      face = this.constructFace(revName);
+      if (face.name !== originFaceName) {
+        face.name !== parameterPolygon ? result.add(face.name) : null;
+      }
+    }
 
     return Array.from(result);
   }

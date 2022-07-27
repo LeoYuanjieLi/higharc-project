@@ -65,7 +65,6 @@ describe('Basic Geometry methods', () => {
 
   it('should gen 2 faces', () => {
     testGeo.genAllFaces();
-    console.log(testGeo.faces);
   });
 });
 
@@ -98,7 +97,8 @@ describe('With interior face test case', () => {
         [20, 1000],  // 6
         [1024, 996],  // 7
         [1100, 1024],  // 8
-        [1111, 1065]  // 9
+        [1111, 1065],  // 9
+        [900,  900]  // 10
       ],
     "edges":
       [
@@ -114,7 +114,9 @@ describe('With interior face test case', () => {
         [4, 5],
         [7, 8],
         [9, 8],
-        [7, 9]
+        [7, 9],
+        [4, 10],
+        [10, 5]
       ]
   }
   let testGeo;
@@ -126,13 +128,19 @@ describe('With interior face test case', () => {
   });
   it('should get 1 interior face', () => {
     const faces = testGeo.getInteriorFaceNames();
-    console.log("interior faces", faces);
-    expect(faces.length).toBe(1);
+    expect(faces.length).toBe(2);
     expect(faces[0]).toBe("2,3,4,5");
   });
-  it('should get 2 neighbor faces', () => {
+  it('should get correct number of neighbors', () => {
     const originFaceNames = testGeo.getInteriorFaceNames();
-    const neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
+    let neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
+    expect(neighbors.length).toBe(3);
+    neighbors = testGeo.getNeighborFaces("0,1,2,3");
     expect(neighbors.length).toBe(2);
+    neighbors = testGeo.getNeighborFaces("7,8,9");
+    expect(neighbors.length).toBe(0);
+    neighbors = testGeo.getNeighborFaces("4,5,10");
+    expect(neighbors.length).toBe(2);
+
   });
 });

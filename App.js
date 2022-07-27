@@ -1,5 +1,6 @@
 `use strict`
 
+
 class Edge {
   constructor(v1Id, v2Id, v1, v2) {
     /**
@@ -14,6 +15,7 @@ class Edge {
 
 }
 
+
 class Face {
   constructor(edges, faceType="exterior") {
     /**
@@ -21,13 +23,13 @@ class Face {
      * a unique ID
      */
     this.originName = edges.map(e => e.name).join("||");
-    this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
-    // this.name = this.edges.map(e => e.name).join("||");
+    this.edges = edges;
     this.faceType = faceType; // default to be exterior;
     this.verts = new Set();
     this.getVerts();
-    this.name = Array.from([...this.verts].sort()).toString();
-
+    const vArray = Array.from(this.verts);
+    vArray.sort((a, b) => a - b);
+    this.name = vArray.toString();
   }
 
   getVerts() {
@@ -38,6 +40,7 @@ class Face {
     })
   }
 }
+
 
 class Polygons {
   constructor(inputJson) {
@@ -244,16 +247,20 @@ class Polygons {
 
   getNeighborFaces(originFaceName) {
     const originFace = this.faces.get(originFaceName);
-    const verts = Array.from(originFace.verts);
     const result = new Set();
-    verts.forEach(v => {
-      const neighbors = this.adjList.get(v);
-      neighbors.forEach( n => {
-        const face = this.constructFace(`${v}--${n}`);
-        originFace.name !== face.name ? result.add(face.name) : null;
-
-      })
-    })
+    const parameterPolygon = this.faces.keys().next().value;
+    for (let i = 0; i < originFace.edges.length; i++) {
+      const e = originFace.edges[i];
+      let face = this.constructFace(e.name);
+      if (face.name !== originFaceName) {
+        face.name !== parameterPolygon ? result.add(face.name) : null;
+      }
+      const revName = `${e.end}--${e.start}`
+      face = this.constructFace(revName);
+      if (face.name !== originFaceName) {
+        face.name !== parameterPolygon ? result.add(face.name) : null;
+      }
+    }
 
     return Array.from(result);
   }
@@ -285,8 +292,7 @@ class Draw {
     }
   }
 
-  static drawFace(faceName, polygons) {
-    const face = polygons.faces.get(faceName);
+  static drawFace(face, polygons, color="red") {
     const orderedEdges = face.originName.split("||");
     const firstEdge = polygons.edges.get(orderedEdges[0])
     const firstPt = firstEdge.startPos;
@@ -298,15 +304,21 @@ class Draw {
         const edge = polygons.edges.get(orderedEdges[i]);
         ctx.lineTo(edge.endPos[0], edge.endPos[1]);
       }
-      if (face.faceType === "allExterior") {
-        ctx.fillStyle = "purple";
-      } else {
-        face.faceType === "interior" ? ctx.fillStyle = "red" : ctx.fillStyle = "blue";
-      }
+      ctx.fillStyle = color;
       ctx.fill();
       ctx.closePath();
       ctx.stroke();
     }
+  }
+
+  static drawAllFacesAlgorithm2(faceName, inputJson) {
+    const polygons = new Polygons(inputJson);
+    const neighbors = polygons.getNeighborFaces(faceName);
+    const face = polygons.faces.get(faceName);
+    Draw.drawFace(face, polygons, "pink");
+    neighbors.forEach(neiFaceName => {
+      Draw.drawFace(polygons.faces.get(neiFaceName), polygons, "green");
+    })
   }
 
   static drawAllFacesAlgorithm1(inputJson) {
@@ -318,7 +330,10 @@ class Draw {
     const polygons = new Polygons(inputJson);
     const faceNames = Array.from(polygons.faces.keys());
     for (let i = 1; i < faceNames.length; i++) {
-      Draw.drawFace(faceNames[i], polygons);
+      // note, i start at 1 because i == 0 is reserved for the whole exterior edges
+      const face = polygons.faces.get(faceNames[i]);
+      const color = face.faceType === "interior" ? "red" : "blue";
+      Draw.drawFace(face, polygons, color);
     }
   }
 
@@ -360,4 +375,9 @@ const inputJson = {
     ]
 }
 
-Draw.drawAllFacesAlgorithm1(inputJson);
+// Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
+// Draw.drawAllFacesAlgorithm2("0,1,2,3", inputJson); // use this to view algo 2 result;
+// Draw.drawAllFacesAlgorithm2("4,5,10", inputJson); // use this to view algo 2 result;
+// Draw.drawAllFacesAlgorithm2("7,8,9", inputJson); // use this to view algo 2 result;
+Draw.drawAllFacesAlgorithm2("0,1,2,3,4,5,6,7,10", inputJson); // use this to view algo 2 result;
+
