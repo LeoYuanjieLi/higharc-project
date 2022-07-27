@@ -1,16 +1,16 @@
 {
   "name": "higharc-project",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "higharc assignment",
-  "main": "app.js",
+  "main": "App.js",
   "scripts": {
+    "dev": "live-server",
     "test": "jest"
   },
   "author": "lileo",
   "license": "MIT",
   "dependencies": {
     "jest": "^28.1.3",
-    "rld": "^1.0.0",
-    "wach": "^3.0.0"
+    "live-server": "^1.2.2"
   }
 }

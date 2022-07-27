@@ -35,7 +35,6 @@ describe('Basic Geometry methods', () => {
   });
 
   it('should generate adjList', () => {
-    testGeo.genAdjList()
     expect(Object.fromEntries(testGeo.adjList))
       .toEqual(
           { 0: [ 1, 2, 3 ],
@@ -57,15 +56,14 @@ describe('Basic Geometry methods', () => {
     expect(testGeo.exteriorEdges.size).toBe(8);
   });
 
-  it('should construct a face', () => {
+  it('should construct the faces', () => {
     const Face1 = testGeo.constructFace('0--1');
     const Face2 = testGeo.constructFace('0--2');
     const Face3 = testGeo.constructFace('0--3');
   });
 
   it('should gen 2 faces', () => {
-    testGeo.genAllFaces();
-    console.log(testGeo.faces);
+    expect(testGeo.faces.size).toBe(3);
   });
 });
 
@@ -96,7 +94,10 @@ describe('With interior face test case', () => {
         [300, 600],  // 4
         [800, 550],  // 5
         [20, 1000],  // 6
-        [1024, 996]  // 7
+        [1024, 996],  // 7
+        [1100, 1024],  // 8
+        [1111, 1065],  // 9
+        [900,  900]  // 10
       ],
     "edges":
       [
@@ -109,25 +110,37 @@ describe('With interior face test case', () => {
         [2, 3],
         [4, 2],
         [3, 5],
-        [4, 5]
+        [4, 5],
+        [7, 8],
+        [9, 8],
+        [7, 9],
+        [4, 10],
+        [10, 5]
       ]
   }
   let testGeo;
   it("should construct a geometry", () => {
     testGeo = new Polygons(inputJson);
   })
-  it('should get 8 exterior edges', () => {
-    expect(testGeo.exteriorEdges.size).toBe(8);
+  it('should get 14 exterior edges', () => {
+    expect(testGeo.exteriorEdges.size).toBe(14);
   });
-  it('should generate 3 faces', () => {
-    testGeo.genAllFaces();
+  it('should get 2 interior face', () => {
     const faces = testGeo.getInteriorFaceNames();
-    expect(faces.length).toBe(1);
-    expect(faces[0]).toBe("2--3||3--5||4--2||5--4");
+    expect(faces.length).toBe(2);
+    expect(faces[0]).toBe("2,3,4,5");
+    expect(faces[1]).toBe("4,5,10");
   });
-  it('should get 2 neighbor faces', () => {
+  it('should get correct number of neighbors', () => {
     const originFaceNames = testGeo.getInteriorFaceNames();
-    const neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
-    console.log(neighbors);
+    let neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
+    expect(neighbors.length).toBe(3);
+    neighbors = testGeo.getNeighborFaces("0,1,2,3");
+    expect(neighbors.length).toBe(2);
+    neighbors = testGeo.getNeighborFaces("7,8,9");
+    expect(neighbors.length).toBe(0);
+    neighbors = testGeo.getNeighborFaces("4,5,10");
+    expect(neighbors.length).toBe(2);
+
   });
 });

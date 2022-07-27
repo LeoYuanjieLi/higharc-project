@@ -1,6 +1,45 @@
-"use strict"
-const {Face} = require('./Face');
-const {Edge} = require('./Edge');
+`use strict`
+
+
+class Edge {
+  constructor(v1Id, v2Id, v1, v2) {
+    /**
+     * @type {v1: Array[Number], v2: Array[Number]}
+     */
+    this.start = v1Id;
+    this.end = v2Id;
+    this.name = v1Id.toString() + "--" + v2Id.toString();
+    this.startPos = v1;
+    this.endPos = v2;
+  }
+
+}
+
+
+class Face {
+  constructor(edges, faceType="exterior") {
+    /**
+     * The sort is to make sure same collection of Edges construct same name as
+     * a unique ID
+     */
+    this.originName = edges.map(e => e.name).join("||");
+    this.edges = edges;
+    this.faceType = faceType; // default to be exterior;
+    this.verts = new Set();
+    this.getVerts();
+    const vArray = Array.from(this.verts);
+    vArray.sort((a, b) => a - b);
+    this.name = vArray.toString();
+  }
+
+  getVerts() {
+    this.edges.forEach(e => {
+      const [start, end] = e.name.split("--");
+      this.verts.add(parseInt(start));
+      this.verts.add(parseInt(end));
+    })
+  }
+}
 
 
 class Polygons {
@@ -94,7 +133,7 @@ class Polygons {
      * time complexity O(e * v^2), v is vertices number, e is edge count
      */
 
-    // pre-work, add all edges to the queue;
+      // pre-work, add all edges to the queue;
     const queue = [];
     // const visitedEdges = new Set();
     for (let i = 0; i < this.vertices.length; i++) {
@@ -149,7 +188,7 @@ class Polygons {
      * all exterior faces has AT LEAST ONE edge in this group.
      * @type {{}}
      */
-    //find "left most" edge
+      //find "left most" edge
     const neighbors = this.adjList.get(this.startPtId);
     let nextAngle = 0;
     let nextId = -1;
@@ -227,4 +266,118 @@ class Polygons {
   }
 }
 
-module.exports = {Polygons};
+class Draw {
+
+  static drawPolygon(polygons) {
+    const canvas = document.getElementById('canvas');
+    const edges = Array.from(polygons.edges.values());
+    const edgesXY = [];
+    edges.forEach(e => {
+      const start = e.startPos;
+      const end = e.endPos;
+      edgesXY.push([start, end]);
+    })
+
+    if (canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+
+      ctx.beginPath();
+      for (let i = 0; i < edgesXY.length; i++) {
+        const [start, end] = edgesXY[i];
+        ctx.moveTo(start[0], start[1]);
+        ctx.lineTo(end[0], end[1]);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  }
+
+  static drawFace(face, polygons, color="red") {
+    const orderedEdges = face.originName.split("||");
+    const firstEdge = polygons.edges.get(orderedEdges[0])
+    const firstPt = firstEdge.startPos;
+    if (canvas.getContext) {
+      const ctx = canvas.getContext('2d');
+      ctx.beginPath();
+      ctx.moveTo(firstPt[0], firstPt[1]);
+      for (let i = 0; i < orderedEdges.length; i++) {
+        const edge = polygons.edges.get(orderedEdges[i]);
+        ctx.lineTo(edge.endPos[0], edge.endPos[1]);
+      }
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+
+  static drawAllFacesAlgorithm2(faceName, inputJson) {
+    const polygons = new Polygons(inputJson);
+    const neighbors = polygons.getNeighborFaces(faceName);
+    const face = polygons.faces.get(faceName);
+    Draw.drawFace(face, polygons, "pink");
+    neighbors.forEach(neiFaceName => {
+      Draw.drawFace(polygons.faces.get(neiFaceName), polygons, "green");
+    })
+  }
+
+  static drawAllFacesAlgorithm1(inputJson) {
+    /**
+     * draw all faces of inputJson (vertices and edges), interior faces are colored red, exterior faces
+     * are colored blue;
+     * @type {Polygons}
+     */
+    const polygons = new Polygons(inputJson);
+    const faceNames = Array.from(polygons.faces.keys());
+    for (let i = 1; i < faceNames.length; i++) {
+      // note, i start at 1 because i == 0 is reserved for the whole exterior edges
+      const face = polygons.faces.get(faceNames[i]);
+      const color = face.faceType === "interior" ? "red" : "blue";
+      Draw.drawFace(face, polygons, color);
+    }
+  }
+
+}
+
+
+const inputJson = {
+  "vertices":
+    [
+      [50, 50],  // 0
+      [1000, 50],  // 1
+      [200, 200],  // 2
+      [600, 200],  // 3
+      [300, 600],  // 4
+      [800, 550],  // 5
+      [20, 1000],  // 6
+      [1024, 996],  // 7
+      [1100, 1024],  // 8
+      [1111, 1065],  // 9
+      [900,  900]  // 10
+    ],
+  "edges":
+    [
+      [0, 1],
+      [1, 7],
+      [6, 7],
+      [0, 6],
+      [2, 0],
+      [1, 3],
+      [2, 3],
+      [4, 2],
+      [3, 5],
+      [4, 5],
+      [7, 8],
+      [9, 8],
+      [7, 9],
+      [4, 10],
+      [10, 5]
+    ]
+}
+
+Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
+// Draw.drawAllFacesAlgorithm2("0,1,2,3", inputJson); // use this to view algo 2 result;
+// Draw.drawAllFacesAlgorithm2("4,5,10", inputJson); // use this to view algo 2 result;
+// Draw.drawAllFacesAlgorithm2("7,8,9", inputJson); // use this to view algo 2 result;
+// Draw.drawAllFacesAlgorithm2("0,1,2,3,4,5,6,7,10", inputJson); // use this to view algo 2 result;
+

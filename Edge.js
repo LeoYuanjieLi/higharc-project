@@ -1,4 +1,6 @@
 "use strict"
+
+
 class Edge {
   constructor(v1Id, v2Id, v1, v2) {
     /**
