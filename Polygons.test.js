@@ -96,7 +96,9 @@ describe('With interior face test case', () => {
         [300, 600],  // 4
         [800, 550],  // 5
         [20, 1000],  // 6
-        [1024, 996]  // 7
+        [1024, 996],  // 7
+        [1100, 1024],  // 8
+        [1111, 1065]  // 9
       ],
     "edges":
       [
@@ -109,21 +111,24 @@ describe('With interior face test case', () => {
         [2, 3],
         [4, 2],
         [3, 5],
-        [4, 5]
+        [4, 5],
+        [7, 8],
+        [9, 8],
+        [7, 9]
       ]
   }
   let testGeo;
   it("should construct a geometry", () => {
     testGeo = new Polygons(inputJson);
   })
-  it('should get 8 exterior edges', () => {
-    expect(testGeo.exteriorEdges.size).toBe(8);
+  it('should get 14 exterior edges', () => {
+    expect(testGeo.exteriorEdges.size).toBe(14);
   });
-  it('should generate 3 faces', () => {
-    testGeo.genAllFaces();
+  it('should get 1 interior face', () => {
     const faces = testGeo.getInteriorFaceNames();
+    console.log("interior faces", faces);
     expect(faces.length).toBe(1);
-    expect(faces[0]).toBe("2--3||3--5||4--2||5--4");
+    expect(faces[0]).toBe("2,3,4,5");
   });
   it('should get 2 neighbor faces', () => {
     const originFaceNames = testGeo.getInteriorFaceNames();

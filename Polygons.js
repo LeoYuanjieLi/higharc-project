@@ -8,6 +8,7 @@ class Polygons {
     this.vertices = inputJson.vertices;
     this.rawEdges = inputJson.edges;
     this.adjList = new Map();
+    this.visitedEdges = new Set();
     this.edges = this.genEdges();
     this.exteriorEdges = new Map();
     this.faces = new Map();
@@ -54,23 +55,27 @@ class Polygons {
      * time complexity O(v^2), v is vertices number
      */
     const startEdge = this.edges.get(startEdgeName);
-    const visited = new Set();
+    // const visited = new Set();
     const allEdges = [startEdge];
     const queue = [startEdge];
+    if (this.exteriorEdges.has(startEdge.name)) {
+      faceType = "exterior";
+    }
     while (queue.length > 0) {
       const curEdge = queue.shift();
       const curId = curEdge.end;
-      visited.add(curEdge.name);
+      // visited.add(curEdge.name);
       const neighbors = this.adjList.get(curId);
 
       const nextId = this.getNextId(curEdge, neighbors);
       const name = curId.toString() + "--" + nextId.toString();
-      if (nextId !== -1 && !visited.has(name)) {
+      if (nextId !== -1) {
         if (this.exteriorEdges.has(name)) {
           faceType = "exterior";
         }
         queue.push(this.edges.get(name));
         allEdges.push(this.edges.get(name));
+        this.visitedEdges.add(name);
         if (nextId === startEdge.start) {
           break;
         }
@@ -91,18 +96,22 @@ class Polygons {
 
     // pre-work, add all edges to the queue;
     const queue = [];
+    // const visitedEdges = new Set();
     for (let i = 0; i < this.vertices.length; i++) {
       const neighbors = this.adjList.get(i);
       const edgeNames = neighbors.map(neiId => i.toString() + "--" + neiId.toString());
-      const filteredName = edgeNames.filter(name => !this.exteriorEdges.has(name));
-      queue.push(...filteredName);
+      // const filteredName = edgeNames.filter(name => !this.exteriorEdges.has(name));
+      queue.push(...edgeNames);
     }
     // start the search
     while (queue.length > 0) {
       const current = queue.shift();
-      const curFace = this.constructFace(current);  // actual work of construction
-      if (curFace != null && !this.faces.has(curFace.name)) {
-        this.faces.set(curFace.name, curFace);
+      if (!this.visitedEdges.has(current)) {
+        this.visitedEdges.add(current);
+        const curFace = this.constructFace(current);  // actual work of construction
+        if (curFace != null && !this.faces.has(curFace.name)) {
+          this.faces.set(curFace.name, curFace);
+        }
       }
     }
   }
@@ -157,16 +166,19 @@ class Polygons {
     const face = this.constructFace(startEdgeName);
     face.faceType = "allExterior";  // bad practice... bur for now
     this.faces.set(face.name, face);
-    const exteriorEdges = this.constructFace(startEdgeName).edges;
-    exteriorEdges.forEach(e => {
-      this.exteriorEdges.set(e.name, e);
-      this.exteriorEdges.set(`${e.end}--${e.start}`, this.edges.get(`${e.end}--${e.start}`));
-      // add reverse edges as well
-    });
-    this.exteriorPts = new Set();
-    this.exteriorEdges.forEach(e => {
-      this.exteriorPts.add(e.start);
-      this.exteriorPts.add(e.end);})
+    if (!this.visitedEdges.has(startEdgeName)) {
+      this.visitedEdges.add(startEdgeName);
+      const exteriorPolygon = this.constructFace(startEdgeName).edges;
+      exteriorPolygon.forEach(e => {
+        this.exteriorEdges.set(e.name, e);
+        this.exteriorEdges.set(`${e.end}--${e.start}`, this.edges.get(`${e.end}--${e.start}`));
+        // add reverse edges as well
+      });
+      this.exteriorPts = new Set();
+      this.exteriorEdges.forEach(e => {
+        this.exteriorPts.add(e.start);
+        this.exteriorPts.add(e.end);})
+    }
   }
 
   getStartPtId() {
@@ -209,8 +221,6 @@ class Polygons {
 
     return Array.from(result);
   }
-
-
 }
 
 module.exports = {Polygons};

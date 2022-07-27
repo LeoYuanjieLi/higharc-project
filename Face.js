@@ -8,10 +8,11 @@ class Face {
      */
     this.originName = edges.map(e => e.name).join("||");
     this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
-    this.name = this.edges.map(e => e.name).join("||");
+    // this.name = this.edges.map(e => e.name).join("||");
     this.faceType = faceType; // default to be exterior;
     this.verts = new Set();
     this.getVerts();
+    this.name = Array.from([...this.verts].sort()).toString();
   }
 
   getVerts() {
