@@ -133,6 +133,6 @@ describe('With interior face test case', () => {
   it('should get 2 neighbor faces', () => {
     const originFaceNames = testGeo.getInteriorFaceNames();
     const neighbors = testGeo.getNeighborFaces(originFaceNames[0]);
-    console.log(neighbors);
+    expect(neighbors.length).toBe(2);
   });
 });

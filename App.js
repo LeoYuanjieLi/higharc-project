@@ -22,10 +22,11 @@ class Face {
      */
     this.originName = edges.map(e => e.name).join("||");
     this.edges = edges.sort((a, b) => a.name.localeCompare(b.name));
-    this.name = this.edges.map(e => e.name).join("||");
+    // this.name = this.edges.map(e => e.name).join("||");
     this.faceType = faceType; // default to be exterior;
     this.verts = new Set();
     this.getVerts();
+    this.name = Array.from([...this.verts].sort()).toString();
 
   }
 
@@ -308,6 +309,19 @@ class Draw {
     }
   }
 
+  static drawAllFacesAlgorithm1(inputJson) {
+    /**
+     * draw all faces of inputJson (vertices and edges), interior faces are colored red, exterior faces
+     * are colored blue;
+     * @type {Polygons}
+     */
+    const polygons = new Polygons(inputJson);
+    const faceNames = Array.from(polygons.faces.keys());
+    for (let i = 1; i < faceNames.length; i++) {
+      Draw.drawFace(faceNames[i], polygons);
+    }
+  }
+
 }
 
 
@@ -323,7 +337,8 @@ const inputJson = {
       [20, 1000],  // 6
       [1024, 996],  // 7
       [1100, 1024],  // 8
-      [1111, 1065]  // 9
+      [1111, 1065],  // 9
+      [900,  900]  // 10
     ],
   "edges":
     [
@@ -339,23 +354,10 @@ const inputJson = {
       [4, 5],
       [7, 8],
       [9, 8],
-      [7, 9]
+      [7, 9],
+      [4, 10],
+      [10, 5]
     ]
 }
 
-function drawAllFaces(inputJson) {
-  /**
-   * draw all faces of inputJson (vertices and edges), interior faces are colored red, exterior faces
-   * are colored blue;
-   * @type {Polygons}
-   */
-  const polygons = new Polygons(inputJson);
-  const faceNames = Array.from(polygons.faces.keys());
-  for (let i = 1; i < faceNames.length; i++) {
-    Draw.drawFace(faceNames[i], polygons);
-  }
-  Draw.drawPolygon(polygons);
-}
-
-
-drawAllFaces(inputJson);
+Draw.drawAllFacesAlgorithm1(inputJson);
