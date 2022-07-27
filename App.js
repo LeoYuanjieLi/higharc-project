@@ -375,7 +375,7 @@ const inputJson = {
     ]
 }
 
-// Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
+Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
 // Draw.drawAllFacesAlgorithm2("0,1,2,3", inputJson); // use this to view algo 2 result;
 // Draw.drawAllFacesAlgorithm2("4,5,10", inputJson); // use this to view algo 2 result;
 // Draw.drawAllFacesAlgorithm2("7,8,9", inputJson); // use this to view algo 2 result;
