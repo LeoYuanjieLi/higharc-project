@@ -2,6 +2,8 @@
 A humble attempt to implement some fun algorithms in javascript (as vanilla as possible)
 
 ## TL;DR
+#### Live App (Fake, just static files lol)
+[Link](https://codepen.io/LeoYuanjieLi/pen/WNzZEPo)
 
 ### View result of Algorithms 1 & 2
 In `App.js`, enable `line 378` for algorithm 1, the other for algorithm 2
