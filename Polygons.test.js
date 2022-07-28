@@ -62,7 +62,7 @@ describe('Basic Geometry methods', () => {
     const Face3 = testGeo.constructFace('0--3');
   });
 
-  it('should gen 2 faces', () => {
+  it('should gen 3 faces', () => {
     expect(testGeo.faces.size).toBe(3);
   });
 });
@@ -141,6 +141,23 @@ describe('With interior face test case', () => {
     expect(neighbors.length).toBe(0);
     neighbors = testGeo.getNeighborFaces("4,5,10");
     expect(neighbors.length).toBe(2);
+    neighbors = testGeo.getNeighborFaces("0,1,2,3,4,5,6,7,10");
+    expect(neighbors.length).toBe(3);
+  });
 
+  it('should get faces in order from starting face',
+    () => {
+      let neighborsInOrder = testGeo.getFacesInOrder("4,5,10");
+      expect(neighborsInOrder.length).toBe(2);
+      expect(neighborsInOrder[0].length).toBe(2);
+      expect(neighborsInOrder[1].length).toBe(1);
+      expect(neighborsInOrder[0][0]).toBe( '2,3,4,5');
+      expect(neighborsInOrder[0][1]).toBe( '0,1,2,3,4,5,6,7,10');
+      expect(neighborsInOrder[1][0]).toBe( '0,1,2,3');
+
+      neighborsInOrder = testGeo.getFacesInOrder('2,3,4,5');
+      expect(neighborsInOrder[0].length).toBe(3);
+      neighborsInOrder = testGeo.getFacesInOrder('7,8,9');
+      expect(neighborsInOrder.length).toBe(0);
   });
 });
