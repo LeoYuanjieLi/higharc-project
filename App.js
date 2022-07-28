@@ -41,7 +41,6 @@ class Face {
   }
 }
 
-
 class Polygons {
   constructor(inputJson) {
     this.vertices = inputJson.vertices;
@@ -251,20 +250,51 @@ class Polygons {
     const parameterPolygon = this.faces.keys().next().value;
     for (let i = 0; i < originFace.edges.length; i++) {
       const e = originFace.edges[i];
-      let face = this.constructFace(e.name);
-      if (face.name !== originFaceName) {
-        face.name !== parameterPolygon ? result.add(face.name) : null;
-      }
-      const revName = `${e.end}--${e.start}`
-      face = this.constructFace(revName);
-      if (face.name !== originFaceName) {
-        face.name !== parameterPolygon ? result.add(face.name) : null;
+      if (!this.exteriorEdges.has(e.name)) {
+        let face = this.constructFace(e.name);
+        if (face.name !== originFaceName) {
+          face.name !== parameterPolygon ? result.add(face.name) : null;
+        }
+        const revName = `${e.end}--${e.start}`
+        face = this.constructFace(revName);
+        if (face.name !== originFaceName) {
+          face.name !== parameterPolygon ? result.add(face.name) : null;
+        }
       }
     }
 
     return Array.from(result);
   }
+
+  getFacesInOrder(originFaceName) {
+    const visited = new Set();
+    visited.add(originFaceName);
+    const queue = [originFaceName];
+    const result = [];
+    while (queue.length > 0) {
+      const n = queue.length;
+      for (let i = 0; i < n; i++) {
+        const curLevel = [];
+        const curName = queue.shift();
+        const neighborNames = this.getNeighborFaces(curName);
+        for (let j = 0; j < neighborNames.length; j++) {
+          if (!visited.has(neighborNames[j])) {
+            visited.add(neighborNames[j]);
+            curLevel.push(neighborNames[j]);
+            queue.push(neighborNames[j]);
+          }
+        }
+        if (curLevel.length === 0) {
+          return result;
+        }
+        result.push(curLevel);
+      }
+    }
+
+    return result;
+  }
 }
+
 
 class Draw {
 

@@ -4,7 +4,8 @@ A humble attempt to implement some fun algorithms in javascript (as vanilla as p
 ## TL;DR
 #### Live App (Fake, just static files lol)
 [Link](https://codepen.io/LeoYuanjieLi/pen/WNzZEPo)
-
+Here is a reference image of the vertices ids.
+![example](example.png)
 ### View result of Algorithms 1 & 2
 In `App.js`, enable `line 378` for algorithm 1, the other for algorithm 2
 ```javascript
@@ -14,7 +15,7 @@ Draw.drawAllFacesAlgorithm1(inputJson); // use this to view algorithm 1 result;
 // Draw.drawAllFacesAlgorithm2("7,8,9", inputJson); // use this to view algo 2 result;
 // Draw.drawAllFacesAlgorithm2("0,1,2,3,4,5,6,7,10", inputJson); // use this to view algo 2 result;
 ```
-The main idea of the algorithm is not very clever, the `Polygon.constructFace` does the most of the work
+The main idea of the algorithm is not very clever, the `Polygons.constructFace` does the most of the work
 by construct a single `Face` object. The way `constructFace` method simply uses a greedy algorithm to search
 for the `right most` edge from the current edge (see helper function `getNextId` and `edgeAngle`).
 
@@ -40,7 +41,8 @@ i.e. face name `0,1,2` would be a name of face contains `0-1`, `1-2`, `0-2`.
 Algorithm 2 worst case, you can get `v*e` as well.
 
 Algorithm 4 is just the extension of algorithm 2 (add a BFS and build a graph), 
-because time limitation and my rust js skills I will not implement it at the moment
+see `Polygons.getFacesInOrder` method. It is a simple BFS on top of `Polygons.getNeighborFaces`,
+you can run it but also verify it in the last test of `Polygons.test.js` file.
 
 Algorithm 3 is more tricky. Ideally, you have several zones in your XY world plain (build it as a 
 quad-tree). Then you can quickly eliminate spaces. For the sake of this assignment, we can use
@@ -75,3 +77,5 @@ Would love to learn some more js/ts stuff from you :)
 - [x] hash face name with verts;
 - [x] modify neighbor function so that point touching does not count as neighbors
 - [x] documentations
+- [x] algorithm 4 implemented and tested
+- [ ] algorithm 3
