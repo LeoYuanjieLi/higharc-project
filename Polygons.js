@@ -255,6 +255,95 @@ class Polygons {
 
     return result;
   }
+
+  isInside(face, p)
+  {
+    // Create a point for line segment from p to infinite
+    let infi = [100000, p[1]];
+    let count = 0;
+
+    for (let i = 0; i < face.edges.length; i++) {
+      const curEdge = face.edges[i];
+      const tempEdge = new Edge(0, 1, p, infi);
+      if (this.doIntersect(curEdge, tempEdge)) {
+        const start = curEdge.startPos;
+        const end = curEdge.endPos;
+        if (this.orientation(start, p, end) === 0) {
+          return this.onSegment(start, p, end);
+        }
+        count++;
+      }
+    }
+    return count % 2 === 1; // Same as (count%2 == 1)
+  }
+
+  onSegment(p, q, r) {
+    return q[0] <= Math.max(p[0], r[0]) &&
+      q[0] >= Math.min(p[0], r[0]) &&
+      q[1] <= Math.max(p[1], r[1]) &&
+      q[1] >= Math.min(p[1], r[1]);
+  }
+
+  orientation(p, q, r)
+  {
+    let val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
+
+    if (val === 0)
+    {
+      return 0; // collinear
+    }
+    return (val > 0) ? 1 : 2; // clock or counterclock wise
+  }
+
+  doIntersect(e1, e2) {
+    // Find the four orientations needed for
+    // general and special cases
+    const p1 = e1.startPos;
+    const p2 = e1.endPos;
+    const q1 = e2.startPos;
+    const q2 = e2.endPos;
+    let o1 = this.orientation(p1, q1, p2);
+    let o2 = this.orientation(p1, q1, q2);
+    let o3 = this.orientation(p2, q2, p1);
+    let o4 = this.orientation(p2, q2, q1);
+
+    // General case
+    if (o1 !== o2 && o3 !== o4) {
+      return true;
+    }
+
+    // Special Cases
+    // p1, q1 and p2 are collinear and
+    // p2 lies on segment p1q1
+    if (o1 === 0 && this.onSegment(p1, p2, q1))
+    {
+      return true;
+    }
+
+    // p1, q1 and p2 are collinear and
+    // q2 lies on segment p1q1
+    if (o2 === 0 && this.onSegment(p1, q2, q1))
+    {
+      return true;
+    }
+
+    // p2, q2 and p1 are collinear and
+    // p1 lies on segment p2q2
+    if (o3 === 0 && this.onSegment(p2, p1, q2))
+    {
+      return true;
+    }
+
+    // p2, q2 and q1 are collinear and
+    // q1 lies on segment p2q2
+    if (o4 === 0 && this.onSegment(p2, q1, q2))
+    {
+      return true;
+    }
+    // Doesn't fall in any of the above cases
+    return false;
+  }
 }
+
 
 module.exports = {Polygons};

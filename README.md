@@ -52,8 +52,7 @@ still be `O(v**2)`.
 Algorithm 3 is more tricky. Ideally, you have several zones in your XY world plain (build it as a 
 quad-tree). Then you can quickly eliminate spaces. For the sake of this assignment, we can use
 https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/ this brute force
-approach. However we have to check if the intersection line are also vertices of the face, if so it 
-should be excluded.
+approach. Checkout `Polygons.isInside` method (not tested)
 
 
 ## Run locally
@@ -84,4 +83,5 @@ Would love to learn some more js/ts stuff from you :)
 - [x] modify neighbor function so that point touching does not count as neighbors
 - [x] documentations
 - [x] algorithm 4 implemented and tested
-- [ ] algorithm 3
+- [x] algorithm 3 implemented
+- [ ] algorithm 3 test
