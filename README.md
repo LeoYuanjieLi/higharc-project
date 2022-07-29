@@ -30,19 +30,24 @@ edges has direction, `1-2` is not the same as `2-1`, tag the face as `exterior` 
 `exterior edge`, otherwise, tag as `interior`.
 
 After we build above data structure, retrieving the interior faces (algorithm 1) is trivial. 
-Just loop through them. Hence, time complexity is `e` (angle comparison time each time) * `v`
-(number of nodes we visited). However because `e` and `v` are correlated, this is just a loose
-upper bound.
+Just loop through them. (Update) because there are no overlap edges, we are sure that each 2 nodes
+can only form at least 1 edge (2 if directional), so `e` and `v` are the same level of count
+(i.e. `e` = A * `v`, A is a constant between 1 and 3). The function `constructFace` time complexity
+is `e * some_constant`, this is because for each edge, we are searching all its neighbors. the total
+number of neighbors are `e` so if we average out to each edge, it is constant time.
+Construct all edges hence takes `e` edges and each is time `e` to construct, hence constructing all
+edges takes `O(e**2)` -> `O(v**2)`
 
 The neighbor search is also trivial. You just have to rerun construct face from all edges and check if 
 the face is the original face. Faces are guaranteed to be unique with the incrementally sorted vertex Ids
 i.e. face name `0,1,2` would be a name of face contains `0-1`, `1-2`, `0-2`.
 
-Algorithm 2 worst case, you can get `v*e` as well.
+Algorithm 2 worst case, you can get `O(v**2)` as well.
 
 Algorithm 4 is just the extension of algorithm 2 (add a BFS and build a graph), 
 see `Polygons.getFacesInOrder` method. It is a simple BFS on top of `Polygons.getNeighborFaces`,
-you can run it but also verify it in the last test of `Polygons.test.js` file.
+you can run it but also verify it in the last test of `Polygons.test.js` file. Time complexity should
+still be `O(v**2)`.
 
 Algorithm 3 is more tricky. Ideally, you have several zones in your XY world plain (build it as a 
 quad-tree). Then you can quickly eliminate spaces. For the sake of this assignment, we can use
