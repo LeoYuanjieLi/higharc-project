@@ -52,7 +52,8 @@ still be `O(v**2)`.
 Algorithm 3 is more tricky. Ideally, you have several zones in your XY world plain (build it as a 
 quad-tree). Then you can quickly eliminate spaces. For the sake of this assignment, we can use
 https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/ this brute force
-approach.
+approach. However we have to check if the intersection line are also vertices of the face, if so it 
+should be excluded.
 
 
 ## Run locally
